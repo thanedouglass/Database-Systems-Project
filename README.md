@@ -25,23 +25,27 @@ Ensure the following files are present:
 Open a terminal and run:
 ```bash
 createdb gradebook
+```
 
 ### 3. Execute the schema and data script
-```psql -d gradebook -f gradebook.sql
+```bash
+psql -d gradebook -f gradebook.sql
+```
 
 The script will:
-
 - Drop any existing objects (for clean re‑runs)
 - Create all tables with constraints and triggers
 - Insert sample courses, students, enrollments, categories, assignments, and scores
-- Define two functions: compute_grade() and compute_grade_drop_lowest()
+- Define two functions: `compute_grade()` and `compute_grade_drop_lowest()`
 - Display example queries for tasks 4‑12 (commented out by default)
 
-## Verify the Installation
-```psql -d gradebook \dt
+### 4. Verify the installation
+```bash
+psql -d gradebook -c "\dt"
+```
 
 ## How to Run Each Task
-All task queries are included inside gradebook.sql (commented). Below are the essential commands.
+All task queries are included inside `gradebook.sql` (commented). Below are the essential commands.
 
 | Task | Description | Command |
 |------|-------------|---------|
@@ -52,10 +56,32 @@ All task queries are included inside gradebook.sql (commented). Below are the es
 | 8 | Change category percentages | `UPDATE GradeCategories SET percentage = 25 WHERE course_id = 1 AND category_name = 'Homework';` (also adjust another category to keep sum 100) |
 | 9 | Add 2 points to all on an assignment | `UPDATE Scores SET points_earned = points_earned + 2 WHERE assignment_id = 1;` |
 | 10 | Add 2 points to students with 'Q' in last name | `UPDATE Scores SET points_earned = points_earned + 2 WHERE student_id IN (SELECT student_id FROM Students WHERE last_name ILIKE '%Q%');` |
-| 11 | Compute a student’s grade | `SELECT compute_grade(1, 1);` (student 1 in course 1) |
+| 11 | Compute a student's grade | `SELECT compute_grade(1, 1);` (student 1 in course 1) |
 | 12 | Compute grade dropping lowest score in a category | `SELECT compute_grade_drop_lowest(1, 1, 'Homework');` |
 
-### Additional Notes
--The “lowest score dropped” function only drops one lowest score per student per specified category. It handles categories with one assignment gracefully (does not drop it).
-- All foreign keys are defined with ON DELETE CASCADE where appropriate to maintain referential integrity.
-- The schema uses SERIAL auto‑incrementing primary keys for simplicity.
+## Compilation & Execution Notes
+- This is a SQL/PL/pgSQL project, so no separate "compilation" is required. The `psql -f` command executes the script directly.
+- Functions are stored in the database and can be called repeatedly.
+- The trigger on `GradeCategories` automatically enforces that category percentages sum to 100% per course.
+
+## Test Cases & Expected Results
+The sample data included in `gradebook.sql` produces the following outputs for the core tasks:
+
+| Task | Query / Function Call | Expected Result |
+|------|----------------------|-----------------|
+| 4 | Average of HW1 (assignment_id=1) | 77.50 |
+| 4 | Highest of HW1 | 95 |
+| 4 | Lowest of HW1 | 60 |
+| 5 | Number of students in CS432 (course_id=1) | 4 (Alice, Bob, Charlie, Diana) |
+| 6 | Rows returned for CS432 | 24 rows (4 students × 6 assignments) |
+| 7 | After insert, check `SELECT * FROM Assignments WHERE assignment_name='HW3'` | 1 row |
+| 8 | After update, `SELECT * FROM GradeCategories WHERE course_id=1` | Participation 10%, Homework 25%, Tests 45%, Projects 20% |
+| 9 | After update, HW1 scores increased by 2 | Alice: 87, Bob: 72, Charlie: 97, Diana: 62 |
+| 10 | After update, Charlie's scores increase by 2 on all assignments | Charlie's scores all +2 |
+| 11 | `compute_grade(1,1)` for Alice in CS432 | ~85.42 |
+| 12 | `compute_grade_drop_lowest(1,1,'Homework')` for Alice | ~87.15 (higher than without drop) |
+
+## Additional Notes
+- The "lowest score dropped" function only drops one lowest score per student per specified category. It handles categories with one assignment gracefully (does not drop it).
+- All foreign keys are defined with `ON DELETE CASCADE` where appropriate to maintain referential integrity.
+- The schema uses `SERIAL` auto‑incrementing primary keys for simplicity.
