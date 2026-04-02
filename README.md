@@ -38,8 +38,7 @@ The script will:
 - Display example queries for tasks 4‑12 (commented out by default)
 
 ## Verify the Installation
-~~~psql -d gradebook
-\dt~~~
+~~~psql -d gradebook \dt~~~
 
 ## How to Run Each Task
 All task queries are included inside gradebook.sql (commented). Below are the essential commands.
