@@ -209,6 +209,13 @@ SELECT s.student_id, s.first_name, s.last_name, s.email
 FROM Students s JOIN Enrollments e ON s.student_id = e.student_id
 WHERE e.course_id = 1;
 ```
+**Result:**  
+| student_id | first_name | last_name | email                |
+|------------|------------|-----------|----------------------|
+| 1          | Alice      | Smith     | alice@univ.edu       |
+| 2          | Bob        | Jones     | bob@univ.edu         |
+| 3          | Charlie    | Quinn     | charlie.q@univ.edu   |
+| 4          | Diana      | Prince    | diana@univ.edu       |
 
 ## Task 6 – List all students and all scores
 ```sql
@@ -233,8 +240,13 @@ Result after insert: SELECT COUNT(*) FROM Assignments WHERE assignment_name = 'H
 UPDATE GradeCategories SET percentage = 25 WHERE course_id = 1 AND category_name = 'Homework';
 UPDATE GradeCategories SET percentage = 45 WHERE course_id = 1 AND category_name = 'Tests';
 ```
-Result after updates:
-
+**Result after updates:**  
+| category_name | percentage |
+|---------------|------------|
+| Participation | 10         |
+| Homework      | 25         |
+| Tests         | 45         |
+| Projects      | 20         |
 
 ## Task 9 – Add 2 points to all students on an assignment
 ```sql
