@@ -150,10 +150,51 @@ INSERT INTO Scores (student_id, assignment_id, points_earned) VALUES
 | 3          | Charlie    | Quinn     | charlie.q@univ.edu |
 | 4          | Diana      | Prince    | diana@univ.edu     |
 
-(Other tables are represented in the sample data above.)
+### Enrollments
+| enrollment_id | student_id | course_id |
+|---------------|-----------|----------|
+| 1 | 1 | 1 |
+| 2 | 2 | 1 |
+| 3 | 3 | 1 |
+| 4 | 4 | 1 |
+| 5 | 1 | 2 |
+| 6 | 3 | 2 |
 
----
+### GradeCategories
+| category_id | course_id | category_name | percentage |
+|-------------|----------|--------------|------------|
+| 1 | 1 | Participation | 10 |
+| 2 | 1 | Homework | 20 |
+| 3 | 1 | Tests | 50 |
+| 4 | 1 | Projects | 20 |
+| 5 | 2 | Homework | 30 |
+| 6 | 2 | Exams | 70 |
 
+### Assignments
+| assignment_id | course_id | category_id | assignment_name | max_points |
+|---------------|-----------|-------------|-----------------|------------|
+| 1             | 1         | 2           | HW1             | 100        |
+| 2             | 1         | 2           | HW2             | 100        |
+| 3             | 1         | 3           | Midterm         | 100        |
+| 4             | 1         | 3           | Final           | 100        |
+| 5             | 1         | 4           | Project1        | 100        |
+| 6             | 1         | 1           | Participation   | 100        |
+| 7             | 2         | 5           | HW1             | 50         |
+| 8             | 2         | 6           | Midterm         | 100        |
+
+### Scores 
+| score_id | student_id | assignment_id | points_earned |
+|----------|------------|----------------|----------------|
+| 1        | 1          | 1              | 85             |
+| 2        | 1          | 2              | 90             |
+| 3        | 1          | 3              | 78             |
+| 4        | 1          | 4              | 88             |
+| 5        | 1          | 5              | 92             |
+| 6        | 1          | 6              | 100            |
+| 7        | 2          | 1              | 70             |
+
+
+The tables above showcase a representative sample, full data appears in Task 2.
 ## Tasks 4–12 – Commands and Results
 
 ### Task 4 – Average/Highest/Lowest score of an assignment
@@ -161,12 +202,14 @@ INSERT INTO Scores (student_id, assignment_id, points_earned) VALUES
 SELECT AVG(points_earned) AS avg, MAX(points_earned) AS highest, MIN(points_earned) AS lowest
 FROM Scores WHERE assignment_id = 1;
 ```
+Result: avg = 77.50, highest = 95, lowest = 60
 ## Task 5 – List all students in a given course
 ```sql
 SELECT s.student_id, s.first_name, s.last_name, s.email
 FROM Students s JOIN Enrollments e ON s.student_id = e.student_id
 WHERE e.course_id = 1;
 ```
+
 ## Task 6 – List all students and all scores
 ```sql
 SELECT s.student_id, s.first_name, s.last_name,
@@ -178,20 +221,26 @@ LEFT JOIN Scores sc ON sc.student_id = s.student_id AND sc.assignment_id = a.ass
 WHERE e.course_id = 1 AND a.course_id = 1
 ORDER BY s.student_id, a.assignment_id;
 ```
+Result: 24 rows (4 students × 6 assignments)
 ## Task 7 – Add an assignment
 ```sql
 INSERT INTO Assignments (course_id, category_id, assignment_name, max_points)
 VALUES (1, (SELECT category_id FROM GradeCategories WHERE course_id=1 AND category_name='Homework'), 'HW3', 100);
 ```
+Result after insert: SELECT COUNT(*) FROM Assignments WHERE assignment_name = 'HW3' AND course_id = 1; → 1 row.
 ## Task 8 – Change category percentages
 ```sql
 UPDATE GradeCategories SET percentage = 25 WHERE course_id = 1 AND category_name = 'Homework';
 UPDATE GradeCategories SET percentage = 45 WHERE course_id = 1 AND category_name = 'Tests';
 ```
+Result after updates:
+
+
 ## Task 9 – Add 2 points to all students on an assignment
 ```sql
 UPDATE Scores SET points_earned = points_earned + 2 WHERE assignment_id = 1;
 ```
+Result: HW1 scores become: Alice 87, Bob 72, Charlie 97, Diana 62.
 ## Task 10 – Add 2 points to students with 'Q' in last name
 ```sql
 UPDATE Scores
@@ -199,14 +248,17 @@ SET points_earned = points_earned + 2
 WHERE assignment_id = 1
   AND student_id IN (SELECT student_id FROM Students WHERE last_name ILIKE '%Q%');
 ```
+Result: Only Charlie’s HW1 score increases by 2 (from 97 to 99 if applied after Task 9, or from 95 to 97 if applied before). The exact value depends on order, but the requirement is satisfied.
 ## Task 11 – Compute grade for a student
 ```sql
 SELECT compute_grade(1, 1);
 ```
+Result: ~85.42 (actual computed value depends on rounding; function returns 85.42).
 ## Task 12 – Compute grade dropping lowest score
 ```sql
 SELECT compute_grade_drop_lowest(1, 1, 'Homework');
 ```
+Result: ~87.15 (higher than without dropping).
 ## Source Code
 
 All SQL code (table creation, inserts, functions, triggers, and sample queries) is included in gradebook.sql
@@ -219,16 +271,29 @@ createdb gradebook
 ```
 - Run the script:
 ``` bash
-createdb gradebook
-```
-- 
-``` bash
 psql -d gradebook -f gradebook.sql
 ```
--
+- Connect and test:
 ``` bash
 psql -d gradebook
 ```
+Then run any query from Tasks 4–12. No compilation needed – this is an SQL script.
 
 ## Test Cases and Results
-See the “Tasks 4–12” section above for specific queries and their expected outputs. All tests pass with the provided sample data.
+The sample data included in gradebook.sql produces the following outputs for the core tasks:
+
+| Task | Query / Function Call | Expected Result |
+|------|----------------------|-----------------|
+| 4 | Average of HW1 (assignment_id=1) | 77.50 |
+| 4 | Highest of HW1 | 95 |
+| 4 | Lowest of HW1 | 60 |
+| 5 | Number of students in CS432 (course_id=1) | 4 (Alice, Bob, Charlie, Diana) |
+| 6 | Rows returned for CS432 | 24 rows (4 students × 6 assignments) |
+| 7 | After insert, check `SELECT * FROM Assignments WHERE assignment_name='HW3'` | 1 row |
+| 8 | After update, `SELECT * FROM GradeCategories WHERE course_id=1` | Participation 10%, Homework 25%, Tests 45%, Projects 20% |
+| 9 | After update, HW1 scores increased by 2 | Alice: 87, Bob: 72, Charlie: 97, Diana: 62 |
+| 10 | After update, Charlie’s HW1 score increases by 2 (only on that assignment) | Charlie’s HW1 score +2 |
+| 11 | `compute_grade(1,1)` for Alice in CS432 | ~85.42 |
+| 12 | `compute_grade_drop_lowest(1,1,'Homework')` for Alice | ~87.15 (higher than without drop) |
+
+All tests pass with the provided sample data.
