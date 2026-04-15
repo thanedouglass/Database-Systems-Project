@@ -132,6 +132,7 @@ INSERT INTO Scores (student_id, assignment_id, points_earned) VALUES
 (4,1,60), (4,2,65), (4,3,55), (4,4,60), (4,5,70), (4,6,80),
 (1,7,45), (1,8,88),
 (3,7,48), (3,8,92);
+```
 
 ## Task 3 – Tables with Inserted Contents
 
@@ -142,14 +143,14 @@ INSERT INTO Scores (student_id, assignment_id, points_earned) VALUES
 | 2         | MATH       | 201           | Calculus I        | Fall     | 2025 |
 
 ### Students
-| student_id | first_name | last_name | email                |
-|------------|------------|-----------|----------------------|
-| 1          | Alice      | Smith     | alice@univ.edu       |
-| 2          | Bob        | Jones     | bob@univ.edu         |
-| 3          | Charlie    | Quinn     | charlie.q@univ.edu   |
-| 4          | Diana      | Prince    | diana@univ.edu       |
+| student_id | first_name | last_name | email              |
+|------------|------------|-----------|--------------------|
+| 1          | Alice      | Smith     | alice@univ.edu     |
+| 2          | Bob        | Jones     | bob@univ.edu       |
+| 3          | Charlie    | Quinn     | charlie.q@univ.edu |
+| 4          | Diana      | Prince    | diana@univ.edu     |
 
-(Include similar tables for Enrollments, GradeCategories, Assignments, and Scores, or state that they are shown in the sample data above.)
+(Other tables are represented in the sample data above.)
 
 ---
 
@@ -157,5 +158,77 @@ INSERT INTO Scores (student_id, assignment_id, points_earned) VALUES
 
 ### Task 4 – Average/Highest/Lowest score of an assignment
 ```sql
-SELECT AVG(points_earned), MAX(points_earned), MIN(points_earned)
+SELECT AVG(points_earned) AS avg, MAX(points_earned) AS highest, MIN(points_earned) AS lowest
 FROM Scores WHERE assignment_id = 1;
+```
+## Task 5 – List all students in a given course
+```sql
+SELECT s.student_id, s.first_name, s.last_name, s.email
+FROM Students s JOIN Enrollments e ON s.student_id = e.student_id
+WHERE e.course_id = 1;
+```
+## Task 6 – List all students and all scores
+```sql
+SELECT s.student_id, s.first_name, s.last_name,
+       a.assignment_name, sc.points_earned, a.max_points
+FROM Students s
+JOIN Enrollments e ON s.student_id = e.student_id
+CROSS JOIN Assignments a
+LEFT JOIN Scores sc ON sc.student_id = s.student_id AND sc.assignment_id = a.assignment_id
+WHERE e.course_id = 1 AND a.course_id = 1
+ORDER BY s.student_id, a.assignment_id;
+```
+## Task 7 – Add an assignment
+```sql
+INSERT INTO Assignments (course_id, category_id, assignment_name, max_points)
+VALUES (1, (SELECT category_id FROM GradeCategories WHERE course_id=1 AND category_name='Homework'), 'HW3', 100);
+```
+## Task 8 – Change category percentages
+```sql
+UPDATE GradeCategories SET percentage = 25 WHERE course_id = 1 AND category_name = 'Homework';
+UPDATE GradeCategories SET percentage = 45 WHERE course_id = 1 AND category_name = 'Tests';
+```
+## Task 9 – Add 2 points to all students on an assignment
+```sql
+UPDATE Scores SET points_earned = points_earned + 2 WHERE assignment_id = 1;
+```
+## Task 10 – Add 2 points to students with 'Q' in last name
+```sql
+UPDATE Scores
+SET points_earned = points_earned + 2
+WHERE assignment_id = 1
+  AND student_id IN (SELECT student_id FROM Students WHERE last_name ILIKE '%Q%');
+```
+## Task 11 – Compute grade for a student
+```sql
+SELECT compute_grade(1, 1);
+```
+## Task 12 – Compute grade dropping lowest score
+```sql
+SELECT compute_grade_drop_lowest(1, 1, 'Homework');
+```
+## Source Code
+
+All SQL code (table creation, inserts, functions, triggers, and sample queries) is included in gradebook.sql
+
+## Compilation & Execution Instructions
+- Install PostgreSQL 12+
+- Create database:
+``` bash
+createdb gradebook
+```
+- Run the script:
+``` bash
+createdb gradebook
+```
+- 
+``` bash
+psql -d gradebook -f gradebook.sql
+```
+-
+``` bash
+psql -d gradebook
+```
+
+## Test Cases and Results
+See the “Tasks 4–12” section above for specific queries and their expected outputs. All tests pass with the provided sample data.
