@@ -132,3 +132,30 @@ INSERT INTO Scores (student_id, assignment_id, points_earned) VALUES
 (4,1,60), (4,2,65), (4,3,55), (4,4,60), (4,5,70), (4,6,80),
 (1,7,45), (1,8,88),
 (3,7,48), (3,8,92);
+
+## Task 3 – Tables with Inserted Contents
+
+### Courses
+| course_id | department | course_number | course_name       | semester | year |
+|-----------|------------|---------------|-------------------|----------|------|
+| 1         | CS         | 432           | Database Systems  | Spring   | 2026 |
+| 2         | MATH       | 201           | Calculus I        | Fall     | 2025 |
+
+### Students
+| student_id | first_name | last_name | email                |
+|------------|------------|-----------|----------------------|
+| 1          | Alice      | Smith     | alice@univ.edu       |
+| 2          | Bob        | Jones     | bob@univ.edu         |
+| 3          | Charlie    | Quinn     | charlie.q@univ.edu   |
+| 4          | Diana      | Prince    | diana@univ.edu       |
+
+(Include similar tables for Enrollments, GradeCategories, Assignments, and Scores, or state that they are shown in the sample data above.)
+
+---
+
+## Tasks 4–12 – Commands and Results
+
+### Task 4 – Average/Highest/Lowest score of an assignment
+```sql
+SELECT AVG(points_earned), MAX(points_earned), MIN(points_earned)
+FROM Scores WHERE assignment_id = 1;
