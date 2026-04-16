@@ -308,4 +308,82 @@ The sample data included in gradebook.sql produces the following outputs for the
 | 11 | `compute_grade(1,1)` for Alice in CS432 | ~85.42 |
 | 12 | `compute_grade_drop_lowest(1,1,'Homework')` for Alice | ~87.15 (higher than without drop) |
 
+<<<<<<< HEAD
 All tests pass with the provided sample data.
+=======
+## Additional Notes
+- The "lowest score dropped" function only drops one lowest score per student per specified category. It handles categories with one assignment gracefully (does not drop it).
+- All foreign keys are defined with `ON DELETE CASCADE` where appropriate to maintain referential integrity.
+- The schema uses `SERIAL` auto‑incrementing primary keys for simplicity.
+
+## Testing the Entire Program
+
+To ensure the grade book database functions correctly, follow these steps to test the full suite of tasks and functions.
+
+### Prerequisites
+- PostgreSQL 12+ installed and running.
+- `psql` command‑line client available in your PATH.
+- The repository cloned locally.
+
+### 1. Create and Populate the Database
+```bash
+createdb gradebook
+psql -d gradebook -f gradebook.sql
+```
+The script will:
+- Drop any existing objects for a clean start.
+- Create tables, constraints, and triggers.
+- Insert sample data for courses, students, enrollments, categories, assignments, and scores.
+- Define the functions `compute_grade` and `compute_grade_drop_lowest`.
+
+### 2. Run All Task Queries
+The `gradebook.sql` file contains commented‑out queries for tasks 4‑12. To execute them all at once, uncomment the queries (remove the leading `--`) and run:
+```bash
+psql -d gradebook -f gradebook.sql
+```
+Observe the output for each task. Expected results are listed in the **Test Cases & Expected Results** table in this README.
+
+### 3. Verify Individual Functions
+You can call the functions directly to validate their logic:
+```sql
+-- Compute a student's overall grade (Task 11)
+SELECT compute_grade(1, 1);  -- course_id=1, student_id=1
+
+-- Compute grade with lowest homework dropped (Task 12)
+SELECT compute_grade_drop_lowest(1, 1, 'Homework');
+```
+Compare the results with the expected values (~85.42 for `compute_grade` and ~87.15 for `compute_grade_drop_lowest` for Alice).
+
+### 4. Automated Validation (Optional)
+Create a simple shell script to run each query and compare against expected output:
+```bash
+#!/usr/bin/env bash
+set -e
+DB=gradebook
+
+run_query() {
+  local sql="$1"
+  psql -d $DB -t -c "$sql" | tr -d '[:space:]'
+}
+
+# Example check for Task 4 average
+expected="77.5"
+actual=$(run_query "SELECT AVG(points_earned) FROM Scores WHERE assignment_id = 1;")
+if [[ "$actual" == "$expected" ]]; then
+  echo "Task 4 average OK"
+else
+  echo "Task 4 average mismatch: $actual (expected $expected)"
+  exit 1
+fi
+# Add similar checks for other tasks as needed.
+```
+Make the script executable (`chmod +x test_gradebook.sh`) and run it to get a quick pass/fail report.
+
+### 5. Clean Up
+When finished, you can drop the database:
+```bash
+dropdb gradebook
+```
+
+Following these steps will test the entire program, ensuring all schema objects, triggers, and functions behave as intended.
+>>>>>>> 7c9e61d (instructions and validation guide to)
